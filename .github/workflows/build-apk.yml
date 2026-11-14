@@ -26,6 +26,7 @@ jobs:
       - name: Create local.properties
         env:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+          MAPS_SAFE_CODE: ${{ secrets.MAPS_SAFE_CODE }}
         run: |
           # 百度地图 Android SDK 的 AK 是必填项：为空时 secrets 插件会生成
           # `public static final String MAPS_API_KEY = ;` 导致 javac 报错
@@ -33,9 +34,12 @@ jobs:
             echo "::warning::MAPS_API_KEY 未配置，使用占位值构建（地图将无法授权）"
             MAPS_API_KEY="PENDING_BAIDU_AK"
           fi
+          # MAPS_SAFE_CODE 同样由 secrets 插件写成 BuildConfig 字段，缺了也编译不过
+          SAFE_CODE="${MAPS_SAFE_CODE:-PENDING_BAIDU_SAFE_CODE}"
           {
             echo "sdk.dir=$ANDROID_SDK_ROOT"
             echo "MAPS_API_KEY=$MAPS_API_KEY"
+            echo "MAPS_SAFE_CODE=$SAFE_CODE"
           } > local.properties
           echo "local.properties 已创建（MAPS_API_KEY 长度 ${#MAPS_API_KEY}）"
 
