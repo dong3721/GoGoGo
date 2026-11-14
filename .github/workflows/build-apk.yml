@@ -27,6 +27,12 @@ jobs:
         env:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
         run: |
+          # 百度地图 Android SDK 的 AK 是必填项：为空时 secrets 插件会生成
+          # `public static final String MAPS_API_KEY = ;` 导致 javac 报错
+          if [ -z "$MAPS_API_KEY" ]; then
+            echo "::warning::MAPS_API_KEY 未配置，使用占位值构建（地图将无法授权）"
+            MAPS_API_KEY="PENDING_BAIDU_AK"
+          fi
           {
             echo "sdk.dir=$ANDROID_SDK_ROOT"
             echo "MAPS_API_KEY=$MAPS_API_KEY"
