@@ -211,7 +211,8 @@ public class MainActivity extends BaseActivity implements SensorEventListener {
 
         initUpdateVersion();
 
-        checkUpdateVersion(false);
+        // [hermes-patch] 去掉启动自动检查更新：上游用 OR 判断版本号，导致每次启动都弹升级框
+        // checkUpdateVersion(false);
     }
 
     @Override

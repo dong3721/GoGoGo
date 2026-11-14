@@ -1,0 +1,56 @@
+name: Build APK (no-update-nag)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths-ignore:
+      - '**.md'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Create local.properties
+        env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+        run: |
+          {
+            echo "sdk.dir=$ANDROID_SDK_ROOT"
+            echo "MAPS_API_KEY=$MAPS_API_KEY"
+          } > local.properties
+          echo "local.properties 已创建（MAPS_API_KEY 长度 ${#MAPS_API_KEY}）"
+
+      - name: Show signing certificate SHA1
+        run: |
+          keytool -list -v -keystore keystore/GoGoGo.jks -storepass GoGoGo \
+            | grep -iE 'SHA1|SHA-1|Alias name|别名' | head -4
+
+      - name: Build release APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Collect APK
+        run: |
+          mkdir -p out
+          find app/build/outputs/apk -name '*.apk' -exec cp {} out/ \;
+          ls -lh out/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gogogo-apk
+          path: out/*.apk
+          if-no-files-found: error
